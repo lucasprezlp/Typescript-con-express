@@ -1,0 +1,93 @@
+extends ./index
+
+block contenido
+    .flex.justify-end.mb-4
+        ul.flex.space-x-4
+            li
+                a(href="/inscripciones/creaInscripcion" class="text-green-600 hover:text-green-800") Agregar inscripción
+
+
+    .py-10
+        h1.text-4xl.my-10.font-extrabold.text-center Proyecto
+            span.font-normal Universidad
+        h2.text-center.text-2xl.font-extrabold= pagina
+
+        table.table-auto.w-full.mt-4
+            thead
+                tr
+                    th.text-left.text-gray-500.uppercase.px-6.py-3 Nombre de la materia
+                    th.text-left.text-gray-500.uppercase.px-6.py-3 Nombre del alumno
+                    th.text-left.text-gray-500.uppercase.px-6.py-3 Nota
+                    th.text-left.text-gray-500.uppercase.px-6.py-3 Fecha
+                    th.text-left.text-gray-500.uppercase.px-6.py-3 Acciones
+
+            tbody
+                each inscripcion in inscripciones
+                    tr
+                        td.px-6.py-4= inscripcion.curso.nombre
+                        td.px-6.py-4= `${inscripcion.estudiante.nombre} ${inscripcion.estudiante.apellido}`
+                        td.px-6.py-4
+                            if inscripcion.nota
+                                | #{inscripcion.nota}
+                            else
+                                span No calificada
+                        td.px-6.py-4= inscripcion.fecha
+                        td.px-6.py-4
+                            button.text-black-500.ml-2(onclick=`eliminarInscripcion(${inscripcion.estudiante_id}, ${inscripcion.curso_id})`) Eliminar
+                            button.text-red-500.ml-2(onclick=`activarCalificacion(${inscripcion.estudiante_id}, ${inscripcion.curso_id})`) Calificar
+
+block scripts
+    script.
+        function activarCalificacion(estudiante_id, curso_id) {
+            const calificacion = prompt("Ingrese la calificación (0-10):");
+            if (calificacion) {
+                guardarCalificacion(estudiante_id, curso_id, calificacion);
+            }
+        }
+
+        async function guardarCalificacion(estudianteId, cursoId, nota) {
+            try {
+                const response = await fetch(`/api/calificar/${estudianteId}/${cursoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nota }), // Asegúrate de que "nota" sea un número
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json(); // Captura el mensaje de error del servidor
+                    throw new Error('Error en la solicitud: ' + errorData.mensaje);
+                }
+
+                const data = await response.json();
+                console.log(data.mensaje); // Maneja la respuesta del servidor
+            } catch (error) {
+                console.error('Error al guardar la calificación:', error);
+            }
+        }
+
+
+
+
+        function eliminarInscripcion(estudiante_id, curso_id) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta inscripción?')) {
+                fetch(`/inscripciones/${estudiante_id}/${curso_id}`, {
+                    method: 'DELETE'
+                })
+                .then(respuesta => respuesta.json())
+                .then(data => {
+                    if (data.mensaje === 'Inscripción eliminada') {
+                        alert('Inscripción eliminada con éxito.');
+                        window.location.reload(); // Recargar la página
+                        
+                    } else {
+                        alert(data.mensaje); // Mensaje de error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar la inscripción.'); // Mensaje de error
+                });
+            }
+        }

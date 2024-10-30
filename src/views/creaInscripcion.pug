@@ -1,0 +1,38 @@
+extends ./index
+
+block contenido
+    .py-10
+        h1.text-4xl.my-10.font-extrabold.text-center Proyecto 
+            span.font-normal Universidad
+        h2.text-center.text-2xl.font-extrabold= pagina
+
+        if errores
+            div(class="max-w-md mx-auto my-10")
+                each error in errores
+                    p.bg-red-600.text-white.uppercase.text-xs.text-center.p-2.mb-1.font-bold= error.msg
+
+        .mt-8.mx-auto.max-w-md
+            .bg-white.py-8.px-4.shadow
+                form.space-y-5(method='POST' action='/inscripciones' noValidate)
+
+                    // Campo para seleccionar estudiante
+                    div
+                        label.block.text-sm.uppercase.text-gray-500.mb-3.font-bold(for="estudiante_id") Estudiante
+                        select(name="estudiante_id" id="estudiante_id" required)
+                            if estudiantes && estudiantes.length
+                                each estudiante in estudiantes
+                                    option(value=estudiante.id) #{estudiante.nombre} #{estudiante.apellido}
+                            else
+                                option(value='') No hay estudiantes disponibles
+
+                    // Campo para seleccionar profesor
+                    div
+                        label.block.text-sm.uppercase.text-gray-500.mb-3.font-bold(for="profesor_id") Curso
+                        select(name="curso_id" id="curso_id" required)
+                            if cursos && cursos.length
+                                each curso in cursos
+                                    option(value=curso.id) #{curso.nombre}
+                            else
+                                option(value='') No hay profesores disponibles
+
+                    input(class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 cursor-pointer" type="submit" value="Registrar Inscripción")
